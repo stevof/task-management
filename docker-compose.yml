@@ -1,0 +1,19 @@
+services:
+  db:
+    container_name: postgres-tasks
+    image: postgres:alpine3.17
+    restart: always
+    environment:
+      POSTGRES_USER: tasks
+      POSTGRES_PASSWORD: tasks
+      POSTGRES_DB: tasks
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    expose:
+      - 5432
+
+networks:
+  default:
+    name: tasks-network
