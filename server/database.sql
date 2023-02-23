@@ -71,3 +71,6 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.reminders
     OWNER to tasks;
+
+INSERT INTO public.users(name, email)
+VALUES ('Bart', 'bart@simpsons.net');

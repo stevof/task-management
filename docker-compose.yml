@@ -1,7 +1,7 @@
 services:
   db:
+    build: .
     container_name: postgres-tasks
-    image: postgres:alpine3.17
     restart: always
     environment:
       POSTGRES_USER: tasks
