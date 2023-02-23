@@ -1,23 +1,33 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState, useRef } from "react";
 import TaskFormModal from "./TaskFormModal";
 import ColumnHeadingSortable from "./ColumnHeadingSortable";
 import PriorityIcon from "./PriorityIcon";
 import * as constants from "../constants";
 import * as utils from "../utils";
 
-const TaskList = () => {
+export default function TaskList() {
   const [tasks, setTasks] = useState([]);
-  const [sortBy, setSortBy] = useState({ field: "title", desc: false });
+  const [allTasks, setAllTasks] = useState([]);
+  const [sortBy, setSortBy] = useState({ field: "due_date", desc: false });
+  const searchRef = useRef();
 
+  // getTasks only runs when the component first renders
   const getTasks = async () => {
     try {
       const response = await fetch(`${constants.REST_URL}/tasks`);
       const jsonData = await response.json();
 
-      // sort the tasks
-      jsonData.sort(utils.sortByProperty(sortBy.field, sortBy.desc));
+      // sort the tasks by due date ASC by default
+      jsonData.sort(utils.sortByPropertyToDate("due_date", false));
 
+      // this is the tasks bound to the list
       setTasks(jsonData);
+
+      // save the original set of tasks for searching. this allows instant client-side searching
+      // without calling the server
+      // TODO: we could extract out only the attributes we need for searching (title, description),
+      // to reduce duplicate data saved in state.
+      setAllTasks(jsonData);
     } catch (error) {
       console.error(error.message);
     }
@@ -59,8 +69,9 @@ const TaskList = () => {
   const toggleComplete = async (task) => {
     try {
       console.log(
-        `toggleComplete - id ${task.id}:
-        about to change is_complete to ${!task.is_complete}`
+        `toggleComplete - changed id ${
+          task.id
+        } is_complete to ${!task.is_complete}`
       );
       task.is_complete = !task.is_complete;
 
@@ -78,9 +89,51 @@ const TaskList = () => {
     }
   };
 
+  const searchTasks = (reset) => {
+    if (reset) {
+      searchRef.current.value = null;
+      setTasks(allTasks);
+      return;
+    }
+    const searchFor = searchRef.current.value;
+
+    // search through the full original list of tasks we got from the server.
+    // this allows user to revise/clear the search without calling back to the server
+    const results = allTasks.filter(
+      (task) =>
+        task.title.includes(searchFor) || task.description.includes(searchFor)
+    );
+    setTasks(results);
+  };
+
   return (
     <Fragment>
-      <table className="table table-striped mt-5">
+      <table className="">
+        <tbody>
+          <tr>
+            <td>
+              <TaskFormModal />
+            </td>
+            <td className="d-inline form-inline">
+              <input
+                type="text"
+                className="form-control m-1"
+                placeholder="Search"
+                onChange={() => searchTasks()}
+                ref={searchRef}
+              ></input>
+              <button
+                type="button"
+                className="btn btn-link btn-sm"
+                onClick={() => searchTasks(true)}
+              >
+                clear
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <table className="table table-striped mt-3">
         <thead>
           <tr>
             <th className="text-center">
@@ -149,7 +202,17 @@ const TaskList = () => {
                 <td className="text-center">
                   <PriorityIcon priority={task.priority} />
                 </td>
-                <td>{task.title}</td>
+                <td>
+                  {task.title}
+                  {task.description ? (
+                    <>
+                      <br />
+                      <em className="small">
+                        {task.description.substring(0, 40)}
+                      </em>
+                    </>
+                  ) : null}
+                </td>
                 <td>{utils.formatDateString(task.due_date)}</td>
                 <td>
                   <TaskFormModal task={task} />{" "}
@@ -167,6 +230,4 @@ const TaskList = () => {
       </table>
     </Fragment>
   );
-};
-
-export default TaskList;
+}

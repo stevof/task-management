@@ -13,7 +13,7 @@ nodemon (?)
 `cd server`
 `npm install`
 
-From ptoject root folder, run `docker-compose -f docker-compose.yml up -d`
+From project root folder, run `docker-compose -f docker-compose.yml up -d`
 
 Run db migrations....?
 

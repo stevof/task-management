@@ -37,7 +37,8 @@ app.get("/tasks", async (req, res) => {
     console.log("GET /tasks");
 
     const allTasks = await pool.query(
-      "SELECT id, title, description, priority, is_complete, due_date, user_id FROM tasks"
+      `SELECT id, title, description, priority, is_complete, due_date, reminder_date, created_date, user_id
+      FROM tasks`
     );
     res.json(allTasks.rows);
   } catch (error) {
@@ -53,7 +54,9 @@ app.get("/tasks/:id", async (req, res) => {
 
     const { id } = req.params;
     const task = await pool.query(
-      "SELECT id, title, description, priority, is_complete, due_date FROM tasks WHERE id = $1",
+      `SELECT id, title, description, priority, is_complete, due_date, reminder_date, created_date, user_id
+      FROM tasks
+      WHERE id = $1`,
       [id]
     );
 
@@ -73,7 +76,7 @@ app.put("/tasks/:id", async (req, res) => {
     const data = req.body;
     const updateTask = await pool.query(
       `UPDATE tasks
-      SET user_id = $2, title = $3, description = $4, priority = $5, is_complete = $6, due_date = $7
+      SET user_id = $2, title = $3, description = $4, priority = $5, is_complete = $6, due_date = $7, reminder_date = $8
       WHERE id = $1`,
       [
         id,
@@ -83,6 +86,7 @@ app.put("/tasks/:id", async (req, res) => {
         data.priority,
         data.is_complete,
         data.due_date,
+        data.reminder_date,
       ]
     );
 

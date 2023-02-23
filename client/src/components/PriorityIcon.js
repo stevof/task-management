@@ -1,4 +1,4 @@
-const PriorityIcon = ({ priority }) => {
+export default function PriorityIcon({ priority }) {
   let icon, title;
 
   if (priority === 1) {
@@ -15,6 +15,4 @@ const PriorityIcon = ({ priority }) => {
   // it should really always be one of the values above
 
   return <span title={title}>{icon}</span>;
-};
-
-export default PriorityIcon;
+}

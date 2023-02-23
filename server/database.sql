@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS public.tasks
     is_complete boolean NOT NULL DEFAULT false,
     due_date timestamp with time zone,
     completed_date timestamp with time zone,
+    reminder_date timestamp with time zone,
     created_date timestamp with time zone NOT NULL DEFAULT now(),
     CONSTRAINT tasks_pkey PRIMARY KEY (id),
     CONSTRAINT tasks_users_fk FOREIGN KEY (user_id)
