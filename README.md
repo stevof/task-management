@@ -2,30 +2,28 @@
 
 ## Prerequisites
 
-Docker
-Node.js (tested with v18.12, but other versions will likely work)
-nodemon (?)
+1. Docker
+1. Node.js (tested with v18.12, but other versions will likely work)
+1. nodemon
 
 ## Setup
 
-### Database
+Clone this repo, start a Terminal in the project folder, then...
+
+### Database and API
 
 `cd server`
+
 `npm install`
 
-From project root folder, run `docker-compose -f docker-compose.yml up -d`
+From project root folder, run `docker compose up -d`
 
-Run db migrations....?
-
-- TODO: use node-pg-migrate, or docker copy to container (special postgres dir)
-
-- TODO: need to create a user record
-
-`DATABASE_URL=postgres://tasks:tasks@localhost:5432/tasks npm run migrate up`
+Starting the docker container should create a PostgreSQL user 'tasks' with password 'tasks', and a database named tasks. It should also run ./server/database.sql to create the necessary objects. Assuming this all works correctly, you should not have to do anything else to set up the database.
 
 ### Web Client
 
 `cd client`
+
 `npm install`
 
 ## Run the App
@@ -33,11 +31,17 @@ Run db migrations....?
 ### Start the API
 
 Start a new Terminal and run:
+
 `cd server`
+
 `nodemon index`
 
 ### Start the Web Client
 
 Start a new Terminal and run:
+
 `cd client`
+
 `npm start`
+
+It should open a browser tab to http://localhost:3000/
