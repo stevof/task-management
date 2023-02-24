@@ -15,13 +15,13 @@ app.post("/tasks", async (req, res) => {
   try {
     console.log("POST /tasks", req.body);
 
-    const { user_id, title, description, priority, is_complete, due_date } =
+    const { user_id, title, description, priority, is_complete, due_date, reminder_date } =
       req.body;
     const newTask = await pool.query(
-      `INSERT INTO tasks (user_id, title, description, priority, is_complete, due_date)
-      VALUES($1, $2, $3, $4, $5, $6)
+      `INSERT INTO tasks (user_id, title, description, priority, is_complete, due_date, reminder_date)
+      VALUES($1, $2, $3, $4, $5, $6, $7)
       RETURNING *`,
-      [user_id, title, description, priority, is_complete, due_date]
+      [user_id, title, description, priority, is_complete, due_date, reminder_date]
     );
 
     res.json(newTask.rows[0]);
