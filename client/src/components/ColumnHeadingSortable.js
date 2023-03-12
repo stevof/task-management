@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function ColumnHeadingSortable2({
+export default function ColumnHeadingSortable({
   text,
   field,
   sortTasks,
