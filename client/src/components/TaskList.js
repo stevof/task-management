@@ -9,7 +9,6 @@ export default function TaskList() {
   const [tasks, setTasks] = useState([]);
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState({ field: "due_date", desc: false });
-  const searchRef = useRef();
 
   // getTasks only runs when the component first renders
   const getTasks = async () => {
@@ -105,11 +104,7 @@ export default function TaskList() {
               <TaskFormModal />
             </td>
             <td className="d-inline form-inline">
-              <SearchBox
-                query={query}
-                setQuery={setQuery}
-                searchRef={searchRef}
-              />
+              <SearchBox query={query} setQuery={setQuery} />
             </td>
           </tr>
         </tbody>

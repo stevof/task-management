@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function SearchBox({ query, setQuery, searchRef }) {
+export default function SearchBox({ query, setQuery }) {
   return (
     <>
       {" "}
@@ -9,8 +9,7 @@ export default function SearchBox({ query, setQuery, searchRef }) {
         className="form-control m-1"
         placeholder="Search"
         value={query}
-        onChange={() => setQuery(searchRef.current.value)}
-        ref={searchRef}
+        onChange={(e) => setQuery(e.target.value)}
       ></input>
       <button
         type="button"
