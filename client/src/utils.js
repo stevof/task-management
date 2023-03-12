@@ -1,7 +1,7 @@
 export function sortByProperty(property, sortDesc, isDate = false) {
   return function (a, b) {
-    let first = sortDesc ? b : a;
-    let second = sortDesc ? a : b;
+    const first = sortDesc ? b : a;
+    const second = sortDesc ? a : b;
 
     let firstVal = first[property];
     let secondVal = second[property];
