@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState, useRef } from "react";
+import React, { Fragment, useEffect, useState, useRef, useMemo } from "react";
 import TaskFormModal from "./TaskFormModal";
 import ColumnHeadingSortable from "./ColumnHeadingSortable";
 import PriorityIcon from "./PriorityIcon";
@@ -7,7 +7,7 @@ import * as utils from "../utils";
 
 export default function TaskList() {
   const [tasks, setTasks] = useState([]);
-  const [allTasks, setAllTasks] = useState([]);
+  const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState({ field: "due_date", desc: false });
   const searchRef = useRef();
 
@@ -20,14 +20,8 @@ export default function TaskList() {
       // sort the tasks by due date ASC by default
       jsonData.sort(utils.sortByPropertyToDate("due_date", false));
 
-      // this is the tasks bound to the list
+      // this is the full, unfiltered list of tasks
       setTasks(jsonData);
-
-      // save the original set of tasks for searching. this allows instant client-side searching
-      // without calling the server
-      // TODO: we could extract out only the attributes we need for searching (title, description),
-      // to reduce duplicate data saved in state.
-      setAllTasks(jsonData);
     } catch (error) {
       console.error(error.message);
     }
@@ -37,6 +31,18 @@ export default function TaskList() {
   useEffect(() => {
     getTasks();
   }, []);
+
+  // filteredTasks is the list of tasks shown in the UI, derived from the full tasks state.
+  // useMemo so it's cached, and we don't need to store it in state.
+  // update it when the main list of tasks changes, or the search query changes
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((task) => {
+      return (
+        task.title.toLowerCase().includes(query.toLowerCase()) ||
+        task.description.toLowerCase().includes(query.toLowerCase())
+      );
+    });
+  }, [tasks, query]);
 
   const sortTasks = (fieldName, isDate) => {
     // toggle sort order if the currently sorted field is being re-sorted
@@ -89,23 +95,6 @@ export default function TaskList() {
     }
   };
 
-  const searchTasks = (reset) => {
-    if (reset) {
-      searchRef.current.value = null;
-      setTasks(allTasks);
-      return;
-    }
-    const searchFor = searchRef.current.value;
-
-    // search through the full original list of tasks we got from the server.
-    // this allows user to revise/clear the search without calling back to the server
-    const results = allTasks.filter(
-      (task) =>
-        task.title.includes(searchFor) || task.description.includes(searchFor)
-    );
-    setTasks(results);
-  };
-
   return (
     <Fragment>
       <table className="">
@@ -116,16 +105,17 @@ export default function TaskList() {
             </td>
             <td className="d-inline form-inline">
               <input
-                type="text"
+                type="search"
                 className="form-control m-1"
                 placeholder="Search"
-                onChange={() => searchTasks()}
+                value={query}
+                onChange={() => setQuery(searchRef.current.value)}
                 ref={searchRef}
               ></input>
               <button
                 type="button"
                 className="btn btn-link btn-sm"
-                onClick={() => searchTasks(true)}
+                onClick={() => setQuery("")}
               >
                 clear
               </button>
@@ -188,7 +178,7 @@ export default function TaskList() {
           </tr>
         </thead>
         <tbody>
-          {tasks.map((task) => {
+          {filteredTasks.map((task) => {
             return (
               <tr key={task.id}>
                 <td className="text-center">
