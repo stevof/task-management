@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-1. Docker
+1. Docker Desktop
 1. Node.js (tested with v18.12, but other versions will likely work)
 1. nodemon
 
@@ -15,6 +15,8 @@ Clone this repo, start a Terminal in the project folder, then...
 `cd server`
 
 `npm install`
+
+Start Docker Desktop
 
 From project root folder, run `docker compose up -d`
 
