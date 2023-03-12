@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import SearchBox from "./SearchBox";
 import ColumnHeadingSortable from "./ColumnHeadingSortable";
 import TaskRow from "./TaskRow";
@@ -96,8 +96,8 @@ export default function TaskList() {
   };
 
   return (
-    <Fragment>
-      <table className="">
+    <>
+      <table>
         <tbody>
           <tr>
             <td>
@@ -109,58 +109,68 @@ export default function TaskList() {
           </tr>
         </tbody>
       </table>
-      <table className="table table-striped mt-3">
-        <thead>
-          <tr>
-            <th className="text-center">
-              <ColumnHeadingSortable
-                text="Done?"
-                field="is_complete"
-                sortTasks={sortTasks}
-                sortBy={sortBy}
-              />
-            </th>
-            <th className="text-center">
-              <ColumnHeadingSortable
-                text="Priority"
-                field="priority"
-                sortTasks={sortTasks}
-                sortBy={sortBy}
-              />
-            </th>
-            <th>
-              <ColumnHeadingSortable
-                text="Task"
-                field="title"
-                sortTasks={sortTasks}
-                sortBy={sortBy}
-              />
-            </th>
-            <th>
-              <ColumnHeadingSortable
-                text="Due Date"
-                field="due_date"
-                sortTasks={sortTasks}
-                sortBy={sortBy}
-                isDate={true}
-              />
-            </th>
-            <th>{/* blank heading cell for buttons column*/}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredTasks.map((task) => {
-            return (
-              <TaskRow
-                key={task.id}
-                toggleComplete={toggleComplete}
-                task={task}
-                deleteTask={deleteTask}
-              />
-            );
-          })}
-        </tbody>
-      </table>
-    </Fragment>
+      <div className="table-responsive">
+        <table className="table table-striped mt-3">
+          <thead>
+            <tr>
+              <th className="text-center">
+                <ColumnHeadingSortable
+                  text="Done?"
+                  field="is_complete"
+                  sortTasks={sortTasks}
+                  sortBy={sortBy}
+                />
+              </th>
+              <th className="text-center">
+                <ColumnHeadingSortable
+                  text="Priority"
+                  field="priority"
+                  sortTasks={sortTasks}
+                  sortBy={sortBy}
+                />
+              </th>
+              <th>
+                <ColumnHeadingSortable
+                  text="Task"
+                  field="title"
+                  sortTasks={sortTasks}
+                  sortBy={sortBy}
+                />
+              </th>
+              <th>
+                <ColumnHeadingSortable
+                  text="Due Date"
+                  field="due_date"
+                  sortTasks={sortTasks}
+                  sortBy={sortBy}
+                  isDate={true}
+                />
+              </th>
+              <th>{/* blank heading cell for buttons column*/}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredTasks?.length > 0 ? (
+              filteredTasks.map((task) => {
+                return (
+                  <TaskRow
+                    key={task.id}
+                    toggleComplete={toggleComplete}
+                    task={task}
+                    deleteTask={deleteTask}
+                  />
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan={5}>
+                  <small>No tasks found</small>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
