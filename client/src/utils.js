@@ -1,26 +1,22 @@
-export function sortByProperty(property, sortDesc) {
+export function sortByProperty(property, sortDesc, isDate = false) {
   return function (a, b) {
     const first = sortDesc ? b : a;
     const second = sortDesc ? a : b;
 
-    if (first[property] > second[property]) return 1;
-    else if (first[property] < second[property]) return -1;
+    let firstVal = first[property];
+    let secondVal = second[property];
 
-    return 0;
-  };
-}
+    if (isDate) {
+      firstVal = firstVal ? new Date(firstVal) : null;
+      secondVal = secondVal ? new Date(secondVal) : null;
+    } else if (typeof firstVal === "string" || typeof secondVal === "string") {
+      // ignore case for strings
+      firstVal = firstVal?.toLowerCase();
+      secondVal = secondVal?.toLowerCase();
+    }
 
-export function sortByPropertyToDate(property, sortDesc) {
-  return function (a, b) {
-    const first = sortDesc ? b : a;
-    const second = sortDesc ? a : b;
-
-    // convert to Date so sorting will work
-    const firstDate = first[property] ? new Date(first[property]) : null;
-    const secondDate = second[property] ? new Date(second[property]) : null;
-
-    if (firstDate > secondDate) return 1;
-    else if (firstDate < secondDate) return -1;
+    if (firstVal > secondVal) return 1;
+    else if (firstVal < secondVal) return -1;
 
     return 0;
   };

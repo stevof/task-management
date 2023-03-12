@@ -2,9 +2,6 @@
 //  For now, use a pre-existing user ID throughout the app.
 export const USER_ID = 1;
 
-//TODO: need a way to set dev versus prod values. This is OK for a POC though.
-export const REST_URL = "http://localhost:5000";
-
 export const PRIORITY = Object.freeze({
   low: 3,
   medium: 2,

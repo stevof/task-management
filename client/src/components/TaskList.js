@@ -1,33 +1,26 @@
-import React, { Fragment, useEffect, useState, useRef } from "react";
-import TaskFormModal from "./TaskFormModal";
+import React, { useEffect, useState, useMemo } from "react";
+import SearchBox from "./SearchBox";
 import ColumnHeadingSortable from "./ColumnHeadingSortable";
-import PriorityIcon from "./PriorityIcon";
-import * as constants from "../constants";
+import TaskRow from "./TaskRow";
+import TaskFormModal from "./TaskFormModal";
 import * as utils from "../utils";
 
 export default function TaskList() {
   const [tasks, setTasks] = useState([]);
-  const [allTasks, setAllTasks] = useState([]);
+  const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState({ field: "due_date", desc: false });
-  const searchRef = useRef();
 
   // getTasks only runs when the component first renders
   const getTasks = async () => {
     try {
-      const response = await fetch(`${constants.REST_URL}/tasks`);
+      const response = await fetch(`${process.env.REACT_APP_REST_URL}/tasks`);
       const jsonData = await response.json();
 
       // sort the tasks by due date ASC by default
-      jsonData.sort(utils.sortByPropertyToDate("due_date", false));
+      jsonData.sort(utils.sortByProperty("due_date", false, true));
 
-      // this is the tasks bound to the list
+      // this is the full, unfiltered list of tasks
       setTasks(jsonData);
-
-      // save the original set of tasks for searching. this allows instant client-side searching
-      // without calling the server
-      // TODO: we could extract out only the attributes we need for searching (title, description),
-      // to reduce duplicate data saved in state.
-      setAllTasks(jsonData);
     } catch (error) {
       console.error(error.message);
     }
@@ -38,6 +31,18 @@ export default function TaskList() {
     getTasks();
   }, []);
 
+  // filteredTasks is the list of tasks shown in the UI, derived from the full tasks state.
+  // useMemo so it's cached, and we don't need to store it in state.
+  // update it when the main list of tasks changes, or the search query changes
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((task) => {
+      return (
+        task.title.toLowerCase().includes(query.toLowerCase()) ||
+        task.description.toLowerCase().includes(query.toLowerCase())
+      );
+    });
+  }, [tasks, query]);
+
   const sortTasks = (fieldName, isDate) => {
     // toggle sort order if the currently sorted field is being re-sorted
     sortBy.desc = fieldName === sortBy.field ? !sortBy.desc : false;
@@ -45,20 +50,18 @@ export default function TaskList() {
     setSortBy({ ...sortBy });
 
     const currentList = [...tasks];
-
-    if (isDate) {
-      currentList.sort(utils.sortByPropertyToDate(sortBy.field, sortBy.desc));
-    } else {
-      currentList.sort(utils.sortByProperty(sortBy.field, sortBy.desc));
-    }
+    currentList.sort(utils.sortByProperty(sortBy.field, sortBy.desc, isDate));
     setTasks(currentList);
   };
 
   const deleteTask = async (id) => {
     try {
-      const deleteTask = await fetch(`${constants.REST_URL}/tasks/${id}`, {
-        method: "DELETE",
-      });
+      const deleteTask = await fetch(
+        `${process.env.REACT_APP_REST_URL}/tasks/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       setTasks(tasks.filter((item) => item.id !== id));
     } catch (error) {
@@ -75,11 +78,14 @@ export default function TaskList() {
       );
       task.is_complete = !task.is_complete;
 
-      const response = await fetch(`${constants.REST_URL}/tasks/${task.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(task),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_REST_URL}/tasks/${task.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(task),
+        }
+      );
 
       // I guess we don't need to refresh since the user already changed the checkbox
       // It's helpful for development to confirm the change got saved
@@ -89,145 +95,82 @@ export default function TaskList() {
     }
   };
 
-  const searchTasks = (reset) => {
-    if (reset) {
-      searchRef.current.value = null;
-      setTasks(allTasks);
-      return;
-    }
-    const searchFor = searchRef.current.value;
-
-    // search through the full original list of tasks we got from the server.
-    // this allows user to revise/clear the search without calling back to the server
-    const results = allTasks.filter(
-      (task) =>
-        task.title.includes(searchFor) || task.description.includes(searchFor)
-    );
-    setTasks(results);
-  };
-
   return (
-    <Fragment>
-      <table className="">
+    <>
+      <table>
         <tbody>
           <tr>
             <td>
               <TaskFormModal />
             </td>
             <td className="d-inline form-inline">
-              <input
-                type="text"
-                className="form-control m-1"
-                placeholder="Search"
-                onChange={() => searchTasks()}
-                ref={searchRef}
-              ></input>
-              <button
-                type="button"
-                className="btn btn-link btn-sm"
-                onClick={() => searchTasks(true)}
-              >
-                clear
-              </button>
+              <SearchBox query={query} setQuery={setQuery} />
             </td>
           </tr>
         </tbody>
       </table>
-      <table className="table table-striped mt-3">
-        <thead>
-          <tr>
-            <th className="text-center">
-              <button
-                className="btn btn-link btn-sm"
-                onClick={() => sortTasks("is_complete")}
-              >
+      <div className="table-responsive">
+        <table className="table table-striped mt-3">
+          <thead>
+            <tr>
+              <th className="text-center">
                 <ColumnHeadingSortable
                   text="Done?"
                   field="is_complete"
+                  sortTasks={sortTasks}
                   sortBy={sortBy}
                 />
-              </button>
-            </th>
-            <th className="text-center">
-              <button
-                className="btn btn-link btn-sm"
-                onClick={() => sortTasks("priority")}
-              >
+              </th>
+              <th className="text-center">
                 <ColumnHeadingSortable
                   text="Priority"
                   field="priority"
+                  sortTasks={sortTasks}
                   sortBy={sortBy}
                 />
-              </button>
-            </th>
-            <th>
-              <button
-                className="btn btn-link btn-sm"
-                onClick={() => sortTasks("title")}
-              >
+              </th>
+              <th>
                 <ColumnHeadingSortable
                   text="Task"
                   field="title"
+                  sortTasks={sortTasks}
                   sortBy={sortBy}
                 />
-              </button>
-            </th>
-            <th>
-              <button
-                className="btn btn-link btn-sm"
-                onClick={() => sortTasks("due_date", true)}
-              >
+              </th>
+              <th>
                 <ColumnHeadingSortable
                   text="Due Date"
                   field="due_date"
+                  sortTasks={sortTasks}
                   sortBy={sortBy}
+                  isDate={true}
                 />
-              </button>
-            </th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {tasks.map((task) => {
-            return (
-              <tr key={task.id}>
-                <td className="text-center">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    defaultChecked={task.is_complete}
-                    onChange={() => toggleComplete(task)}
+              </th>
+              <th>{/* blank heading cell for buttons column*/}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredTasks?.length > 0 ? (
+              filteredTasks.map((task) => {
+                return (
+                  <TaskRow
+                    key={task.id}
+                    toggleComplete={toggleComplete}
+                    task={task}
+                    deleteTask={deleteTask}
                   />
-                </td>
-                <td className="text-center">
-                  <PriorityIcon priority={task.priority} />
-                </td>
-                <td>
-                  {task.title}
-                  {task.description ? (
-                    <>
-                      <br />
-                      <em className="small">
-                        {task.description.substring(0, 40)}
-                      </em>
-                    </>
-                  ) : null}
-                </td>
-                <td>{utils.formatDateString(task.due_date)}</td>
-                <td>
-                  <TaskFormModal task={task} />{" "}
-                  <button
-                    className="btn btn-danger"
-                    onClick={() => deleteTask(task.id)}
-                  >
-                    Delete
-                  </button>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan={5}>
+                  <small>No tasks found</small>
                 </td>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </Fragment>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }

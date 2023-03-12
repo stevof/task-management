@@ -71,7 +71,7 @@ export default function TaskFormModal({ task }) {
         return;
       }
 
-      const response = await fetch(`${constants.REST_URL}/tasks`, {
+      const response = await fetch(`${process.env.REACT_APP_REST_URL}/tasks`, {
         method: "post",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -91,11 +91,14 @@ export default function TaskFormModal({ task }) {
       console.log(body);
 
       if (validate(body)) {
-        const response = await fetch(`${constants.REST_URL}/tasks/${task.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
+        const response = await fetch(
+          `${process.env.REACT_APP_REST_URL}/tasks/${task.id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          }
+        );
       }
 
       // TODO: ideally we should not reload the page. It resets the sort. We could just update the state on the parent component.
